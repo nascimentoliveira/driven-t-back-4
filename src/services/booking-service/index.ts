@@ -15,14 +15,14 @@ async function listBooking(userId: number): Promise<Booking & { Room: Room }> {
 async function createBooking(bookingData: BookingParams): Promise<Booking> {
   const enrollment: Enrollment = await getEnrollment(bookingData.userId);
   await canBooking(enrollment.id);
-  await roomExistAndHasBed(bookingData.roomId);
+  await roomExistAndNotFull(bookingData.roomId);
   const booking: Booking = await bookingRepository.createBooking(bookingData);
   return booking;
 }
 
 async function changeBooking(bookingId: number, bookingData: BookingParams): Promise<Booking> {
   await alreadyHaveReservation(bookingId, bookingData.userId);
-  await roomExistAndHasBed(bookingData.roomId);
+  await roomExistAndNotFull(bookingData.roomId);
   const booking: Booking = await bookingRepository.changeBooking(bookingId, bookingData);
   return booking;
 }
@@ -45,7 +45,7 @@ async function canBooking(enrollmentId: number): Promise<void> {
   }
 }
 
-async function roomExistAndHasBed(roomId: number): Promise<void> {
+async function roomExistAndNotFull(roomId: number): Promise<void> {
   const room: Room & { Booking: Booking[] } = await bookingRepository.findRoom(roomId);
   if (!room) {
     throw notFoundError();
@@ -56,7 +56,7 @@ async function roomExistAndHasBed(roomId: number): Promise<void> {
 }
 
 async function alreadyHaveReservation(bookingId: number, userId: number): Promise<void> {
-  const prevBooking: Booking & { Room: Room } = await listBooking(userId);
+  const prevBooking: Booking & { Room: Room } = await bookingRepository.listBooking(userId);
   if (!prevBooking || bookingId!==prevBooking.id) {
     throw cannotBookingError();
   }
