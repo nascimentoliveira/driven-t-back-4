@@ -11,10 +11,7 @@ export async function listBooking(req: AuthenticatedRequest, res: Response) {
     const booking: Booking & { Room: Room } = await bookingService.listBooking(userId);
     return res.status(httpStatus.OK).send(booking);
   } catch (error) {
-    if (error.name === "NotFoundError") {
-      return res.sendStatus(httpStatus.NOT_FOUND);
-    }
-    return res.sendStatus(httpStatus.FORBIDDEN);
+    return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
 

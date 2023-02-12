@@ -53,7 +53,7 @@ describe("GET /booking", () => {
   });
 
   describe("when token is valid", () => {
-    it("should respond with status 404 when user has no reservation", async () => {
+    it("should respond with status 404 when user has no booking", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -66,7 +66,7 @@ describe("GET /booking", () => {
       expect(response.status).toEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 200 with reservation data", async () => {
+    it("should respond with status 200 with booking data", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
@@ -193,7 +193,7 @@ describe("POST /booking", () => {
         expect(response.status).toEqual(httpStatus.NOT_FOUND);
       });
 
-      it("should respond with status 403 when room has no more beds", async () => {
+      it("should respond with status 403 when room is full", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const enrollment = await createEnrollmentWithAddress(user);
@@ -211,7 +211,7 @@ describe("POST /booking", () => {
         expect(response.status).toEqual(httpStatus.FORBIDDEN);
       });
       
-      it("should respond with status 200 with reservation id", async () => {
+      it("should respond with status 200 with booking id", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const enrollment = await createEnrollmentWithAddress(user);
@@ -295,7 +295,7 @@ describe("PUT /booking/:bookingId", () => {
         expect(response.status).toEqual(httpStatus.FORBIDDEN);
       });
 
-      it("should respond with status 403 when the user is not the owner of the reservation", async () => {
+      it("should respond with status 403 when user is not owner of booking", async () => {
         const user = await createUser();
         const token = await generateValidToken(user);
         const enrollment = await createEnrollmentWithAddress(user);
@@ -348,7 +348,7 @@ describe("PUT /booking/:bookingId", () => {
           expect(response.status).toEqual(httpStatus.FORBIDDEN);
         });
         
-        it("should respond with status 200 with reservation id", async () => {
+        it("should respond with status 200 with booking id", async () => {
           const user = await createUser();
           const token = await generateValidToken(user);
           const enrollment = await createEnrollmentWithAddress(user);
@@ -366,6 +366,13 @@ describe("PUT /booking/:bookingId", () => {
           expect(response.body).toEqual({
             id: booking.id,
           });
+          const bookingEdited = await prisma.booking.findUnique({
+            where: {
+              id: response.body.id
+            }
+          });
+          expect(bookingEdited.userId).toBe(user.id);
+          expect(bookingEdited.roomId).toBe(newRoom.id);
         });
       });
     });
